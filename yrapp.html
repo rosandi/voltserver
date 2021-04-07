@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GF-Instruments</title>
+<script src="jquery.min.js"></script>
+<script src='plotly.js'></script>
+
+<style>
+* {box-sizing: border-box}
+
+/* Set height of body and the document to 100% */
+body, html {
+  width: 100%;
+  margin: 0;
+  font-family: Arial;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+}
+
+/* Style tab links */
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 20px 10px;
+  font-size: 17px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+/* Style tab links */
+.cmdbtn {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: 1px solid white;
+  outline: none;
+  cursor: pointer;
+  padding: 5px;
+  text-align: center;
+  margin-left: 5px;
+  margin-right: 5px;
+  font-size: 1.5em; 
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.cmdbtn:hover {
+  background-color: #777;
+}
+
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {
+  color: white;
+  display: none;
+  padding: 10px 20px;
+  overflow-y: auto;
+}
+
+.noborder {
+  border: 0px;
+  vertical-align:top;
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 2px;
+}
+
+p {
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: justify;
+}
+
+.rangeinput {
+    width: 100%;
+}
+
+.vdisplay {
+  border: 0px;
+  vertical-align:top;
+  text-align:center;
+}
+
+#about {background-color: gray;}
+#measure {background-color: green;}
+#settings {background-color: blue;}
+
+</style>
+
+</head>
+<body>
+
+<table class='noborder' style='background-color:#1A64B7'>
+<tr>
+    <!-- kancing -->
+    <td class='noborder' style='width:15%;' id='kancing'>
+        <table class='noborder'>
+            <tr><td class='noborder' style='padding:10px;'>
+                <button class="tablink" 
+                    onclick="openPage('measure', this, 'blue')" 
+                    id="measureTab">
+                    MEASURE
+                </button>
+            </td></tr>
+            <tr><td class='noborder' style='padding:10px;'>
+                <button class="tablink" 
+                    onclick="openPage('settings', this, 'red')" 
+                    id="paramTab">
+                    SETTINGS
+                </button>
+            </td></tr>
+            <tr><td class='noborder' style='padding:10px;'>
+                <button class="tablink" 
+                    onclick="openPage('about', this, 'green')" 
+                    id="aboutTab">
+                    HELP
+                </button>
+            </td></tr>
+        </table>
+    </td>
+    <td class='noborder' style='width:80%;' id='layar'>
+        
+        <!-- MAIN TAB -->
+        <div id="measure" class="tabcontent">
+            <table>
+                <tr><td class='noborder' style='padding:10px;'>
+                    <div id='plotarea'></div>
+                </td></tr>
+                <tr><td class='noborder' id='buttonfield'>
+                <div style='width:100%;margin:auto;'>                
+                  <button id='measurebtn' class='cmdbtn' onclick='measure()'>MEASURE</button>
+                  <button id='togglebtn' class='cmdbtn' onclick='togglerun()'>RUN/PAUSE</button>
+                </div>
+                </td></tr>
+            </table>
+        </div>
+        
+        
+        <!-- CONFIGURATION -->
+        <div id="settings" class="tabcontent">
+            <div style='border: 1px solid white;padding:10px;'>
+            <h3 align='center'>Device Configurations</h3>
+            <table>
+                <tr>
+                    <th style='width:25%;text-align:center;'>parameter</th>
+                    <th style='width:60%;text-align:center;'>input</th>
+                    <th style='width:15%;text-align:center;'>value</th>
+                </tr><tr>
+                    <td class='noborder'>sample length</td>
+                    <td class='noborder'>
+                        <input id="len" class='rangeinput'
+                        type='range' min="20" max="200" step="10" value="100" 
+                        oninput="rangechg(this.value,'v_len');">
+                    </td>
+                    <td class='vdisplay' id='v_len'>100</td>
+                </tr><tr>
+                    <td class='noborder'>average number</td>
+                    <td class='noborder'>
+                        <input id="avg" class='rangeinput'
+                        type='range' min="1" max="50" step="1" value="10" 
+                        oninput="rangechg(this.value,'v_avg');">
+                    </td>
+                    <td class='vdisplay' id='v_avg'>10</td>
+                </tr><tr>    
+                    <td class='noborder'>sampling delay</td>
+                    <td class='noborder'>
+                        <input id="dt" class='rangeinput'
+                        type='range' min="1" max="50" step="1" value="1" 
+                        oninput="rangechg(this.value,'v_dt');">
+                    </td>
+                    <td class='vdisplay' id='v_dt'>1</td>
+                </tr><tr>
+                    <td class='noborder'>channels</td>
+                    <td class='noborder'>
+                        <input id="ch1" type='checkbox' value="ch1" checked>C1 </input>
+                        <input id="ch2" type='checkbox' value="ch2">C2 </input>
+                        <input id="ch3" type='checkbox' value="ch3">C3 </input>
+                        <input id="ch4" type='checkbox' value="ch4">C4 </input>
+                        <input id="ch5" type='checkbox' value="ch5">C5 </input>
+                        <input id="ch6" type='checkbox' value="ch6">C6</input>
+                    </td> 
+                    <td class='noborder'>
+                        <button id='applybtn' class='cmdbtn'style='width:90%;' onclick='apply()'>APPLY</button> 
+                    </td>
+                </tr>
+            </table>
+        
+            </div>
+            <table style='margin-top:20px;margin-bottom:20px;'>
+            <tr><td class='noborder' style='width:25%;padding:2px 0px;'>
+                
+            <!--- PING BUTTON ---->
+            <button id='pinger' class='cmdbtn'
+            style='width:90%;font-size:1.2em'
+            onclick='ping();'>PING</button>
+            </td>
+            <!-- FIXME: popup sould be better -->
+            <td class='noborder' id='devrespons' class='noborder' style='padding:2px 0px;' >
+            <input id='responsetext' type='text' 
+            style='width:100%;font-size:1em;padding:10px' value="--OK--" disabled>
+            </input>
+            </td>
+            </tr>
+            
+            <!--- COMMAND BUTTON --->
+            <tr><td class='noborder' style='width:25%;padding:2px 0px;'>
+            <button id='sender' class='cmdbtn' 
+              style='width:90%;font-size:1.2em;' 
+              onclick='sendcmd()'>SEND CMD</button>
+            </td>
+            <td class='noborder' class='noborder' style='padding:2px 0px;'>
+            <input id='cmdtext' type='text' 
+            style='width:100%;font-size:1em;padding:10px'></input>
+            </td>
+            </tr>
+            </table>
+            
+            <div id='longresponse' style="
+            width:100%;height:30%;
+            line-height:1em;
+            overflow:auto;
+            padding:5px;
+            background-color:lightgray;
+            color:red;">
+                --OK-- 
+            </div>
+
+            </div>
+        </div>
+        
+        <!-- INFORMATION -->
+        <div id="about" class="tabcontent">
+            <h2> Some information goes here </h2>
+        </div>
+
+    </td>
+</table>
+
+<script> 
+    
+function opentab(tabid) {
+  document.getElementById(tabid).click();
+}
+
+function rangechg(val,vid) {
+  document.getElementById(vid).innerHTML=val;
+}
+
+function openPage(pageName,elmnt,color) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].style.backgroundColor = "";
+  }
+  document.getElementById(pageName).style.display = "block";
+  elmnt.style.backgroundColor = color;
+}
+
+tabcontent = document.getElementsByClassName("tabcontent");
+for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.height = window.innerHeight+"px";
+}
+
+var input = document.getElementById("cmdtext");
+
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+   event.preventDefault();
+   document.getElementById("sender").click();
+  }
+});
+
+document.getElementById("measureTab").click();
+
+</script>
+
+<script src="yrapp.js"></script>
+
+</body>
+</html> 
